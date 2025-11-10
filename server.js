@@ -1,44 +1,49 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import connectDB from './config/db.js';
-import Destination from './models/destination.js'; 
 
-dotenv.config(); 
-console.log('MONGO_URI:', process.env.MONGO_URI);
 
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import connectDB from "./config/db.js";
+
+import userRoutes from "./routes/userRoutes.js";
+import destinationRoutes from "./routes/destinationRoutes.js";
+import restaurantRoutes from "./routes/restaurantRoutes.js";
+import hotelRoutes from "./routes/hotelRoutes.js";
+import guideRoutes from "./routes/guideRoutes.js";
+import bookingRoutes from "./routes/bookingRoutes.js";
+import quizRoutes from "./routes/quizRoutes.js";
+
+dotenv.config();
+connectDB();
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-
-connectDB();
-
-app.get('/', (req, res) => {
-  res.send('Hello from backend and MongoDB!');
+app.get("/", (req, res) => {
+  res.send("Travel Agency API is running successfully!");
 });
 
 
-app.get('/test', async (req, res) => {
-  try {
-    const sample = new Destination({
-      name: 'Paris',
-      country: 'France',
-      description: 'The city of lights and love.',
-      image: 'https://example.com/paris.jpg',
-      bestSeason: 'Spring',
-    });
+app.use("/api/users", userRoutes);
+app.use("/api/destinations", destinationRoutes);
+app.use("/api/restaurants", restaurantRoutes);
+app.use("/api/hotels", hotelRoutes);
+app.use("/api/guides", guideRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/quiz", quizRoutes);
 
-    await sample.save();
 
-    const destinations = await Destination.find();
-    res.json(destinations);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error testing MongoDB connection');
-  }
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+
+app.use((err, req, res, next) => {
+  console.error("Server Error:", err.stack);
+  res.status(500).json({ message: "Internal Server Error" });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
+app.listen(PORT, () =>
+  console.log(`Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`)
+);
