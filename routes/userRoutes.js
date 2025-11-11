@@ -6,7 +6,8 @@ import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 
-router.post("/register", async (req, res) => {
+router.post("/signup", async (req, res) => {
+  console.log("Received signup request:", req.body);  
   const { name, email, password, role } = req.body;
   const userExists = await User.findOne({ email });
   if (userExists) return res.status(400).json({ message: "User already exists" });
@@ -20,6 +21,7 @@ router.post("/register", async (req, res) => {
     token: generateToken(user.id),
   });
 });
+
 
 
 router.post("/login", async (req, res) => {
