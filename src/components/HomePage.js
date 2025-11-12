@@ -8,7 +8,7 @@ function HomePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  // Fetch all destinations from backend
+  // Fetch all destinations
   useEffect(() => {
     fetch("http://localhost:5000/api/destinations")
       .then((res) => res.json())
@@ -34,7 +34,7 @@ function HomePage() {
     <div style={{ padding: "2rem" }}>
       <h1>🌍 Travel Destinations</h1>
 
-      {/* Search and Layout Controls */}
+      {/* Search + Layout Switch */}
       <div
         style={{
           display: "flex",
@@ -43,7 +43,6 @@ function HomePage() {
           marginBottom: "1rem",
         }}
       >
-        {/* Search Bar */}
         <input
           type="text"
           placeholder="Search destinations or countries..."
@@ -58,7 +57,6 @@ function HomePage() {
           }}
         />
 
-        {/* Layout Toggle */}
         <button
           onClick={() => setLayout(layout === "list" ? "grid" : "list")}
           style={{
@@ -70,11 +68,11 @@ function HomePage() {
             cursor: "pointer",
           }}
         >
-          Switch to {layout === "list" ? "Grid" : "List"} View
+          {layout === "list" ? "Grid View" : "List View"}
         </button>
       </div>
 
-      {/* Destination List/Grid */}
+      {/* Destination Cards */}
       <div
         style={{
           display: layout === "grid" ? "grid" : "block",
@@ -91,18 +89,30 @@ function HomePage() {
                 border: "1px solid #ccc",
                 borderRadius: "8px",
                 padding: "1rem",
-                cursor: "pointer",
-                backgroundColor: "#fdfdfd",
+                backgroundColor: "#fff",
                 boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+                cursor: "pointer",
                 transition: "transform 0.2s ease",
               }}
               onClick={() => navigate(`/destination/${dest._id}`)}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
             >
               <h3>{dest.name}</h3>
               <p style={{ color: "#666" }}>{dest.country}</p>
               <p>{dest.description?.slice(0, 80)}...</p>
+
+              {/* ✅ Like/Dislike counts only */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                  marginTop: "0.5rem",
+                  color: "#444",
+                }}
+              >
+                <span>👍 {dest.likes || 0}</span>
+                <span>👎 {dest.dislikes || 0}</span>
+              </div>
             </div>
           ))
         ) : (
