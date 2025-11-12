@@ -5,12 +5,39 @@ function DestinationDetail() {
   const { id } = useParams();
   const [destination, setDestination] = useState(null);
 
+  // Fetch single destination
   useEffect(() => {
     fetch(`http://localhost:5000/api/destinations/${id}`)
       .then((res) => res.json())
       .then((data) => setDestination(data))
       .catch((err) => console.error("Failed to load destination:", err));
   }, [id]);
+
+  // Handle like
+  const handleLike = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/destinations/${id}/like`, {
+        method: "PUT",
+      });
+      const data = await res.json();
+      setDestination((prev) => ({ ...prev, likes: data.likes }));
+    } catch (err) {
+      console.error("Failed to like:", err);
+    }
+  };
+
+  // Handle dislike
+  const handleDislike = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/destinations/${id}/dislike`, {
+        method: "PUT",
+      });
+      const data = await res.json();
+      setDestination((prev) => ({ ...prev, dislikes: data.dislikes }));
+    } catch (err) {
+      console.error("Failed to dislike:", err);
+    }
+  };
 
   if (!destination) return <p style={{ padding: "2rem" }}>Loading destination...</p>;
 
@@ -37,6 +64,37 @@ function DestinationDetail() {
         <strong>Currency:</strong> {destination.currency}
       </p>
       <p style={{ marginTop: "1rem" }}>{destination.description}</p>
+
+      {/* ✅ Like / Dislike Buttons */}
+      <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
+        <button
+          onClick={handleLike}
+          style={{
+            padding: "0.5rem 1rem",
+            borderRadius: "6px",
+            border: "none",
+            backgroundColor: "#4caf50",
+            color: "white",
+            cursor: "pointer",
+          }}
+        >
+          👍 {destination.likes || 0}
+        </button>
+
+        <button
+          onClick={handleDislike}
+          style={{
+            padding: "0.5rem 1rem",
+            borderRadius: "6px",
+            border: "none",
+            backgroundColor: "#f44336",
+            color: "white",
+            cursor: "pointer",
+          }}
+        >
+          👎 {destination.dislikes || 0}
+        </button>
+      </div>
 
       {/* Image Gallery */}
       <h2 style={{ marginTop: "2rem" }}>📸 Gallery</h2>
