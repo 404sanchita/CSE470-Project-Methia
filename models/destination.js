@@ -1,19 +1,24 @@
 import mongoose from "mongoose";
 
 const destinationSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  country: { type: String, required: true },
+  name: String,
+  country: String,
   description: String,
-  image: String,
+  image: [String],
   topAttractions: [String],
   restaurants: [String],
   transportOptions: [String],
-  estimatedBudget: Number,
+  estimatedBudget: String,
   bestSeason: String,
   language: String,
   currency: String,
   etiquetteTips: [String],
   packingChecklist: [String],
+
+  // ✅ New fields:
+  likes: { type: Number, default: 0 },
+  dislikes: { type: Number, default: 0 },
 });
 
-export default mongoose.model("Destination", destinationSchema);
+const Destination = mongoose.model("Destination", destinationSchema);
+export default Destination;
