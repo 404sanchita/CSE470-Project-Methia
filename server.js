@@ -20,7 +20,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.send("Travel Agency API is running successfully!");
+  res.send("Methia is running successfully!");
 });
 
 
