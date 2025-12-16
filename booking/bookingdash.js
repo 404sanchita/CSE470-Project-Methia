@@ -5,7 +5,7 @@ function BookingDashboard() {
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({});
 
-  const API_URL = "http://localhost:5000/api/bookings";
+  const API_URL = "http://localhost:5001/api/bookings";
 
   // load
   useEffect(() => {
