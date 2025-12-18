@@ -1,30 +1,34 @@
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
-import { useContext } from "react";
+import AuthButton from "./AuthButton";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Navbar() {
-  const { user, logout } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
 
   return (
-    <nav className="navbar">
-      <h2>Methia</h2>
-      <div>
-        <Link to="/">Home</Link>
-        <Link to="/destination">Destinations</Link>
-        <Link to="/restaurant">Restaurants</Link>
-        <Link to="/hotel">Hotels</Link>
-        <Link to="/guide">Guides</Link>
-        <Link to="/booking">Booking</Link>
-        <Link to="/quiz">Quiz</Link>
-        {user ? (
-          <button onClick={logout}>Logout</button>
-        ) : (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/signup">Signup</Link>
-          </>
-        )}
-      </div>
+    <nav
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        padding: "1rem",
+        borderBottom: "1px solid #ddd",
+      }}
+    >
+      <ul style={{ display: "flex", gap: "1rem", listStyle: "none" }}>
+        <li><Link to="/">Home</Link></li>
+        <li><Link to="/restaurant">Restaurants</Link></li>
+        <li><Link to="/hotel">Hotels</Link></li>
+        <li><Link to="/guide">Guides</Link></li>
+        <li><Link to="/booking">Booking</Link></li>
+
+        {/* ✅ Show only when logged in */}
+        {user && <li><Link to="/profile">Profile</Link></li>}
+      </ul>
+
+      {/* ✅ Common login/logout button */}
+      <AuthButton />
     </nav>
   );
 }
+
