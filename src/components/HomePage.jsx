@@ -10,7 +10,7 @@ function HomePage() {
 
   // Fetch all destinations
   useEffect(() => {
-    fetch("http://localhost:5000/api/destinations")
+    fetch("http://localhost:5001/api/destinations")
       .then((res) => res.json())
       .then((data) => {
         setDestinations(data);

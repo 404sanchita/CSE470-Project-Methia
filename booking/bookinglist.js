@@ -10,7 +10,7 @@ const BookingList = () => {
   // fetch
   const fetchBookings = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/bookings");
+      const res = await axios.get("http://localhost:5001/api/bookings");
       setBookings(res.data);
     } catch (err) {
       console.error("Error fetching bookings:", err);
@@ -29,7 +29,7 @@ const BookingList = () => {
   // delete
   const deleteBooking = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/bookings/${id}`);
+      await axios.delete(`http://localhost:5001/api/bookings/${id}`);
       setBookings((prev) => prev.filter((b) => b._id !== id));
     } catch (err) {
       console.error("Error deleting booking:", err);
@@ -44,7 +44,7 @@ const BookingList = () => {
 
   const saveEdit = async () => {
     try {
-      const res = await axios.put(`http://localhost:5000/api/bookings/${editing}`, formData);
+      const res = await axios.put(`http://localhost:5001/api/bookings/${editing}`, formData);
       setBookings((prev) =>
         prev.map((b) => (b._id === editing ? res.data : b))
       );
