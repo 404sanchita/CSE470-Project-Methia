@@ -1,27 +1,37 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 
-// Verify token and attach user to request
 export const protect = async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+  if (req.headers.authorization?.startsWith("Bearer")) {
     try {
       token = req.headers.authorization.split(" ")[1];
 
+      // If token is the string "null" or "undefined", stop here
+      if (!token || token === "undefined" || token === "null") {
+        return res.status(401).json({ message: "No token provided" });
+      }
+
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Select everything EXCEPT password
       req.user = await User.findById(decoded.id).select("-password");
+
+      if (!req.user) {
+        return res.status(401).json({ message: "User no longer exists" });
+      }
 
       next();
     } catch (error) {
-      res.status(401).json({ message: "Not authorized, token failed" });
+      console.error("JWT Verification Error:", error.message);
+      return res.status(401).json({ message: "Token failed" });
     }
   } else {
-    res.status(401).json({ message: "No token, authorization denied" });
+    return res.status(401).json({ message: "Not authorized, no token" });
   }
 };
 
-// Only admins allowed
 export const adminOnly = (req, res, next) => {
   if (req.user && req.user.role === "admin") {
     next();
@@ -29,3 +39,4 @@ export const adminOnly = (req, res, next) => {
     res.status(403).json({ message: "Admin access only" });
   }
 };
+
