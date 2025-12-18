@@ -13,7 +13,9 @@ const restaurantSchema = new mongoose.Schema({
   },
   bestDishes: [String],
   image: String,
+  availableSeats: { type: Number, default: 0 },
 });
 
 export default mongoose.model("Restaurant", restaurantSchema);
+
 

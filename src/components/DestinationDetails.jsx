@@ -7,7 +7,7 @@ function DestinationDetail() {
 
   // Fetch single destination
   useEffect(() => {
-    fetch(`http://localhost:5000/api/destinations/${id}`)
+    fetch(`http://localhost:5001/api/destinations/${id}`)
       .then((res) => res.json())
       .then((data) => setDestination(data))
       .catch((err) => console.error("Failed to load destination:", err));
@@ -16,7 +16,7 @@ function DestinationDetail() {
   // Handle like
   const handleLike = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/destinations/${id}/like`, {
+      const res = await fetch(`http://localhost:5001/api/destinations/${id}/like`, {
         method: "PUT",
       });
       const data = await res.json();
@@ -29,7 +29,7 @@ function DestinationDetail() {
   // Handle dislike
   const handleDislike = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/destinations/${id}/dislike`, {
+      const res = await fetch(`http://localhost:5001/api/destinations/${id}/dislike`, {
         method: "PUT",
       });
       const data = await res.json();

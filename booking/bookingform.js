@@ -18,7 +18,7 @@ const BookingForm = ({ onBookingAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/bookings", formData);
+      const res = await axios.post("http://localhost:5001/api/bookings", formData);
       onBookingAdded(res.data); // update parent dashboard
       setFormData({ name: "", date: "", service: "", status: "Pending" });
     } catch (err) {
