@@ -3,13 +3,11 @@ import mongoose from "mongoose";
 const guideSchema = new mongoose.Schema({
   name: { type: String, required: true },
   language: [String],
-  hourlyRate: String,
-  experience: String,
+  hourlyRate: { type: String },
+  experience: { type: String },
   location: String,
   specialties: [String],
-  unavailableDates: [Date],
+  availableDates: [Date],
 });
 
 export default mongoose.model("Guide", guideSchema);
-
-

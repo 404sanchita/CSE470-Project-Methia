@@ -1,58 +1,64 @@
-
-
+// Import required packages (ESM syntax)
 import express from "express";
 import cors from "cors";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { createServer } from "vite";
-import connectDB from "./config/db.js";
 
-import userRoutes from "./routes/userRoutes.js";
 import destinationRoutes from "./routes/destinationRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import userRoutes from "./routes/userRoutes.js"; // ✅ Auth route
+import reactionRoutes from "./routes/reactionRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
+import guideRoutes from "./routes/guideRoutes.js";
 import restaurantRoutes from "./routes/restaurantRoutes.js";
 import hotelRoutes from "./routes/hotelRoutes.js";
-import guideRoutes from "./routes/guideRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
-import quizRoutes from "./routes/quizRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+import guidebookingRoutes from "./routes/guidebookingRoutes.js"; 
 
+// Load environment variables
 dotenv.config();
-connectDB(); // Connect to DB (non-blocking)
 
-// Serve React frontend using Vite
-async function startServer() {
-  const app = express();
-  app.use(cors());
-  app.use(express.json());
+// Create Express app
+const app = express();
 
-  // API routes - must be before Vite middleware
-  app.use("/api/users", userRoutes);
-  app.use("/api/destinations", destinationRoutes);
-  app.use("/api/restaurants", restaurantRoutes);
-  app.use("/api/hotels", hotelRoutes);
-  app.use("/api/guides", guideRoutes);
-  app.use("/api/bookings", bookingRoutes);
-  app.use("/api/quiz", quizRoutes);
+// Middlewares
+app.use(cors());
+app.use(express.json());
 
-  // Error handler
-  app.use((err, req, res, next) => {
-    console.error("Server Error:", err.stack);
-    res.status(500).json({ message: "Internal Server Error" });
-  });
+// Routes
+app.use("/api/destinations", destinationRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/user", userRoutes); // ✅ Login endpoint
+app.use("/api/reactions", reactionRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/guides", guideRoutes);
+app.use("/api/restaurants", restaurantRoutes);
+app.use("/api/hotels", hotelRoutes);
+app.use("/api/bookings", bookingRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/guidebookings", guidebookingRoutes);
 
-  // Create Vite server
-  const vite = await createServer({
-    server: { middlewareMode: true },
-    appType: 'spa',
-    root: process.cwd(),
-  });
-  
-  // Use vite's middleware to serve React app (must be last)
-  // This handles all requests including index.html transformation
-  app.use(vite.middlewares);
+// Simple test route
+app.get("/", (req, res) => {
+  res.send("Hello from Express backend!");
+});
 
-  const PORT = process.env.PORT || 5001;
-  app.listen(PORT, () =>
-    console.log(`Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`)
+// Connect to MongoDB
+mongoose
+  .connect(process.env.MONGO_URI || "", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ MongoDB connected (if URI provided)"))
+  .catch((err) =>
+    console.log("❌ MongoDB connection failed:", err.message)
   );
-}
 
-startServer();
+// Start the server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
