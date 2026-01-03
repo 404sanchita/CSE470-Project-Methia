@@ -14,16 +14,19 @@ import Hotels from "./pages/hotel";
 import Guides from "./pages/guide";
 import Booking from "./pages/booking";
 import Quiz from "./pages/quiz";
+import AdminChat from "./pages/adminChat";
 
 // Extra components
 import HomePage from "./components/HomePage";
 import Profile from "./components/Profile";
+import Chatbox from "./components/Chatbox";
 
 export default function App() {
   return (
     <Router>
       <AuthProvider>
         <Navbar />
+        <Chatbox />
 
         {/* Simple extra nav bar */}
         <nav
@@ -60,6 +63,14 @@ export default function App() {
           {/* New routes */}
           <Route path="/homepage" element={<HomePage />} />
           <Route path="/profile" element={<Profile />} />
+          <Route
+            path="/admin/chat"
+            element={
+              <ProtectedRoute>
+                <AdminChat />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </AuthProvider>
     </Router>

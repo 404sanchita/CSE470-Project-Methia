@@ -13,6 +13,7 @@ import hotelRoutes from "./routes/hotelRoutes.js";
 import guideRoutes from "./routes/guideRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import quizRoutes from "./routes/quizRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
 
 dotenv.config();
 connectDB(); // Connect to DB (non-blocking)
@@ -31,7 +32,8 @@ async function startServer() {
   app.use("/api/guides", guideRoutes);
   app.use("/api/bookings", bookingRoutes);
   app.use("/api/quiz", quizRoutes);
-
+  app.use("/api/chat", chatRoutes);
+  
   // Error handler
   app.use((err, req, res, next) => {
     console.error("Server Error:", err.stack);

@@ -17,7 +17,12 @@ export default function Navbar() {
         <Link to="/booking">Booking</Link>
         <Link to="/quiz">Quiz</Link>
         {user ? (
-          <button onClick={logout}>Logout</button>
+          <>
+            {user.role === "admin" && (
+              <Link to="/admin/chat">Admin Chat</Link>
+            )}
+            <button onClick={logout}>Logout</button>
+          </>
         ) : (
           <>
             <Link to="/login">Login</Link>
