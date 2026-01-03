@@ -1,149 +1,213 @@
 import express from "express";
 import Guide from "../models/guide.js";
-import Booking from "../models/guideBooking.js";
+import Reaction from "../models/reaction.js";
 
 const router = express.Router();
 
-// Get guides by destination
-router.get("/:destination", async (req, res) => {
+// GET all guides
+router.get("/", async (req, res) => {
   try {
-    const destination = req.params.destination.toLowerCase();
-    const guides = await Guide.find({
-      location: { $regex: destination, $options: "i" },
-    });
+    const guides = await Guide.find();
     res.json(guides);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching guides" });
+    res.status(500).json({ message: "Failed to fetch guides" });
   }
 });
 
-// Book a guide
-router.post("/book", async (req, res) => {
+// GET guides by location
+router.get("/by-location/:location", async (req, res) => {
   try {
-    const { guideId, destination, userName, date, hours } = req.body;
-    const guide = await Guide.findById(guideId);
-
-    if (!guide) {
-      return res.status(404).json({ message: "Guide not found" });
-    }
-
-    // Check guide availability
-    if (guide.unavailableDates.includes(date)) {
-      return res.status(400).json({ message: "Guide not available on this date" });
-    }
-
-    // Extract numeric rate (removes currency symbols)
-    const numericRate = parseInt(guide.hourlyRate.replace(/[^\d]/g, ""));
-    const totalCost = isNaN(numericRate)
-      ? "N/A"
-      : `${numericRate * hours} ${guide.hourlyRate.replace(/\d+/g, "").trim()}`;
-
-    const booking = new Booking({
-      guideId,
-      destination,
-      userName,
-      date,
-      hours,
-      totalCost,
+    // Decode URL-encoded location (e.g., "New%20York" -> "New York")
+    let location = decodeURIComponent(req.params.location);
+    
+    // Escape special regex characters
+    const escapedLocation = location.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    
+    // Use case-insensitive regex that matches location containing the search term
+    // This handles both exact matches and partial matches (e.g., "Paris" matches "Paris, France")
+    const guides = await Guide.find({
+      location: { $regex: new RegExp(escapedLocation, "i") }
     });
+    
+    console.log(`Searching for guides in location: "${location}", found ${guides.length} guides`);
+    
+    res.json(guides);
+  } catch (err) {
+    console.error("Error fetching guides by location:", err);
+    res.status(500).json({ message: "Failed to fetch guides by location" });
+  }
+});
 
-    await booking.save();
+// POST create a new guide
+router.post("/", async (req, res) => {
+  try {
+    const guide = new Guide(req.body);
+    const saved = await guide.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error("Error creating guide:", err);
+    res.status(500).json({ message: "Failed to create guide", error: err.message });
+  }
+});
 
-    // Update guide availability
-    guide.unavailableDates.push(date);
-    await guide.save();
-
-    // ✅ Return booking + guide details
-    res.json({
-      message: "Booking successful!",
-      booking: {
-        _id: booking._id,
-        destination,
-        userName,
-        date,
-        hours,
-        totalCost,
-        guide: {
-          name: guide.name,
-          hourlyRate: guide.hourlyRate,
-          experience: guide.experience,
-          language: guide.language,
-          specialties: guide.specialties,
-        },
+// POST seed sample guides (for development/testing)
+router.post("/seed", async (req, res) => {
+  try {
+    const sampleGuides = [
+      {
+        name: "Marie Dubois",
+        location: "Paris",
+        language: ["French", "English"],
+        hourlyRate: "€50",
+        experience: "5 years",
+        specialties: ["History", "Art", "Architecture"]
       },
-    });
+      {
+        name: "Jean-Pierre Martin",
+        location: "Paris",
+        language: ["French", "English", "Spanish"],
+        hourlyRate: "€45",
+        experience: "3 years",
+        specialties: ["Food", "Culture", "Nightlife"]
+      },
+      {
+        name: "Yuki Tanaka",
+        location: "Kyoto",
+        language: ["Japanese", "English"],
+        hourlyRate: "¥5000",
+        experience: "7 years",
+        specialties: ["Temples", "Traditional Culture", "Zen"]
+      },
+      {
+        name: "Hiroshi Yamamoto",
+        location: "Kyoto",
+        language: ["Japanese", "English", "Chinese"],
+        hourlyRate: "¥4500",
+        experience: "4 years",
+        specialties: ["History", "Tea Ceremony", "Gardens"]
+      },
+      {
+        name: "Made Surya",
+        location: "Bali",
+        language: ["Indonesian", "English"],
+        hourlyRate: "$30",
+        experience: "6 years",
+        specialties: ["Beaches", "Temples", "Adventure"]
+      },
+      {
+        name: "Ketut Wijaya",
+        location: "Bali",
+        language: ["Indonesian", "English", "Dutch"],
+        hourlyRate: "$35",
+        experience: "8 years",
+        specialties: ["Culture", "Spiritual", "Nature"]
+      },
+      {
+        name: "Sarah Johnson",
+        location: "New York",
+        language: ["English", "Spanish"],
+        hourlyRate: "$60",
+        experience: "5 years",
+        specialties: ["City Tours", "Food", "Entertainment"]
+      },
+      {
+        name: "Michael Chen",
+        location: "New York",
+        language: ["English", "Mandarin", "Cantonese"],
+        hourlyRate: "$55",
+        experience: "4 years",
+        specialties: ["History", "Architecture", "Shopping"]
+      },
+      {
+        name: "Marco Rossi",
+        location: "Rome",
+        language: ["Italian", "English"],
+        hourlyRate: "€55",
+        experience: "6 years",
+        specialties: ["History", "Art", "Food"]
+      },
+      {
+        name: "Giulia Bianchi",
+        location: "Rome",
+        language: ["Italian", "English", "French"],
+        hourlyRate: "€50",
+        experience: "5 years",
+        specialties: ["Vatican", "Archaeology", "Culture"]
+      },
+      {
+        name: "James Thompson",
+        location: "London",
+        language: ["English"],
+        hourlyRate: "£45",
+        experience: "7 years",
+        specialties: ["History", "Royalty", "Museums"]
+      },
+      {
+        name: "Emma Wilson",
+        location: "London",
+        language: ["English", "French", "German"],
+        hourlyRate: "£50",
+        experience: "4 years",
+        specialties: ["Food", "Theater", "Shopping"]
+      },
+      {
+        name: "Ahmed Al-Mansoori",
+        location: "Dubai",
+        language: ["Arabic", "English"],
+        hourlyRate: "AED 200",
+        experience: "5 years",
+        specialties: ["Modern City", "Desert", "Shopping"]
+      },
+      {
+        name: "Fatima Al-Zahra",
+        location: "Dubai",
+        language: ["Arabic", "English", "Hindi"],
+        hourlyRate: "AED 180",
+        experience: "6 years",
+        specialties: ["Culture", "Food", "Entertainment"]
+      }
+    ];
+
+    // Clear existing guides (optional - remove if you want to keep existing data)
+    await Guide.deleteMany({});
+    
+    // Insert sample guides
+    const createdGuides = await Guide.insertMany(sampleGuides);
+    res.status(201).json({ message: `Created ${createdGuides.length} guides`, guides: createdGuides });
   } catch (err) {
-    console.error("Booking error:", err);
-    res.status(500).json({ message: "Error booking guide" });
+    console.error("Error seeding guides:", err);
+    res.status(500).json({ message: "Failed to seed guides", error: err.message });
   }
 });
-// ✅ Update booking
-router.put("/book/:id", async (req, res) => {
+
+// GET single guide by ID
+router.get("/:id", async (req, res) => {
   try {
-    const { id } = req.params;
-    const { date, hours } = req.body;
-
-    const booking = await Booking.findById(id);
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-
-    const guide = await Guide.findById(booking.guideId);
+    const guide = await Guide.findById(req.params.id);
     if (!guide) {
       return res.status(404).json({ message: "Guide not found" });
     }
-
-    // If date changed, check if guide is available
-    if (date && date !== booking.date && guide.unavailableDates.includes(date)) {
-      return res.status(400).json({ message: "Guide not available on this date" });
-    }
-
-    // If date changed, remove old unavailable date and add new one
-    if (date && date !== booking.date) {
-      guide.unavailableDates = guide.unavailableDates.filter(d => d !== booking.date);
-      guide.unavailableDates.push(date);
-      await guide.save();
-      booking.date = date;
-    }
-
-    // Recalculate total cost if hours changed
-    if (hours) {
-      const numericRate = parseInt(guide.hourlyRate.replace(/[^\d]/g, ""));
-      booking.hours = hours;
-      booking.totalCost = `${numericRate * hours} ${guide.hourlyRate.replace(/\d+/g, "").trim()}`;
-    }
-
-    await booking.save();
-
-    res.json({ message: "Booking updated successfully!", booking });
+    
+    // Get reaction counts
+    const likesCount = await Reaction.countDocuments({ 
+      resourceType: "guide", 
+      resourceId: guide._id, 
+      type: "like" 
+    });
+    const dislikesCount = await Reaction.countDocuments({ 
+      resourceType: "guide", 
+      resourceId: guide._id, 
+      type: "dislike" 
+    });
+    
+    const guideObj = guide.toObject();
+    guideObj.likesCount = likesCount;
+    guideObj.dislikesCount = dislikesCount;
+    guideObj.userReaction = null; // Will be set by LikeDislike component based on current user
+    
+    res.json(guideObj);
   } catch (err) {
-    console.error("Update error:", err);
-    res.status(500).json({ message: "Error updating booking" });
-  }
-});
-
-// ✅ Delete booking
-router.delete("/book/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const booking = await Booking.findById(id);
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-
-    const guide = await Guide.findById(booking.guideId);
-    if (guide) {
-      // Make the guide available again
-      guide.unavailableDates = guide.unavailableDates.filter(d => d !== booking.date);
-      await guide.save();
-    }
-
-    await Booking.findByIdAndDelete(id);
-
-    res.json({ message: "Booking deleted successfully!" });
-  } catch (err) {
-    console.error("Delete error:", err);
-    res.status(500).json({ message: "Error deleting booking" });
+    res.status(500).json({ message: "Failed to fetch guide" });
   }
 });
 

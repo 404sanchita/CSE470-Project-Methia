@@ -1,0 +1,44 @@
+/* ---------- LIKE / DISLIKE CONTAINER ---------- */
+.like-dislike-container {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+/* ---------- BUTTONS ---------- */
+.like-dislike-container button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+/* Like button style */
+.like-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+/* Dislike button style */
+.dislike-button {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Active state for user reaction */
+.like-button.active,
+.dislike-button.active {
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.05);
+}
+
+/* Hover effects */
+.like-button:hover {
+  background-color: #45a049;
+}
+
+.dislike-button:hover {
+  background-color: #e53935;
+}

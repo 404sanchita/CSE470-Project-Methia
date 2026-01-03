@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Restaurant from "../models/restaurant.js";
 import Destination from "../models/destination.js";
 import RestaurantBooking from "../models/restaurantBooking.js";
+import Reaction from "../models/reaction.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -185,6 +186,85 @@ router.post("/:restaurantId/book", async (req, res) => {
   }
 });
 
+// Update restaurant booking
+router.put("/bookings/:id", async (req, res) => {
+  try {
+    const booking = await RestaurantBooking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.bookingStatus === "cancelled" || booking.bookingStatus === "Cancelled") {
+      return res.status(400).json({ message: "Cannot update a cancelled booking" });
+    }
+
+    const { date, time, numberOfGuests, specialRequests } = req.body;
+    
+    // Check available seats if numberOfGuests is changing
+    if (numberOfGuests && numberOfGuests !== booking.numberOfGuests && booking.restaurantId) {
+      const restaurant = await Restaurant.findById(booking.restaurantId);
+      if (!restaurant) {
+        return res.status(404).json({ message: "Restaurant not found" });
+      }
+
+      // Calculate seats needed (new guests - old guests)
+      const seatsDifference = numberOfGuests - booking.numberOfGuests;
+      const availableSeatsAfter = restaurant.availableSeats - seatsDifference;
+
+      if (availableSeatsAfter < 0) {
+        return res.status(400).json({ 
+          message: `Not enough available seats. Only ${restaurant.availableSeats + booking.numberOfGuests} seats available.` 
+        });
+      }
+
+      // Update available seats
+      await Restaurant.findByIdAndUpdate(booking.restaurantId, {
+        $inc: { availableSeats: -seatsDifference }
+      });
+    }
+
+    // Update booking fields
+    if (date) booking.date = date;
+    if (time) booking.time = time;
+    if (numberOfGuests) booking.numberOfGuests = numberOfGuests;
+    if (specialRequests !== undefined) booking.specialRequests = specialRequests;
+
+    await booking.save();
+    
+    res.json({ message: "Booking updated successfully", booking });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating booking", error: error.message });
+  }
+});
+
+// Cancel restaurant booking
+router.put("/bookings/:id/cancel", async (req, res) => {
+  try {
+    const booking = await RestaurantBooking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.bookingStatus === "cancelled" || booking.bookingStatus === "Cancelled") {
+      return res.status(400).json({ message: "Booking already cancelled" });
+    }
+
+    // Restore available seats
+    if (booking.restaurantId) {
+      await Restaurant.findByIdAndUpdate(booking.restaurantId, {
+        $inc: { availableSeats: booking.numberOfGuests }
+      });
+    }
+
+    booking.bookingStatus = "cancelled";
+    await booking.save();
+    
+    res.json({ message: "Booking cancelled successfully", booking });
+  } catch (error) {
+    res.status(500).json({ message: "Error cancelling booking", error: error.message });
+  }
+});
+
 // Get all bookings for a restaurant (admin only)
 router.get("/:restaurantId/bookings", protect, adminOnly, async (req, res) => {
   try {
@@ -203,6 +283,38 @@ router.post("/", protect, adminOnly, async (req, res) => {
     res.status(201).json(saved);
   } catch (error) {
     res.status(400).json({ message: "Error creating restaurant", error: error.message });
+  }
+});
+
+// Get a single restaurant by ID (must come before /:destinationId route)
+router.get("/id/:id", async (req, res) => {
+  try {
+    const restaurant = await Restaurant.findById(req.params.id)
+      .populate("destination", "name country");
+    if (!restaurant) {
+      return res.status(404).json({ message: "Restaurant not found" });
+    }
+    
+    // Get reaction counts
+    const likesCount = await Reaction.countDocuments({ 
+      resourceType: "restaurant", 
+      resourceId: restaurant._id, 
+      type: "like" 
+    });
+    const dislikesCount = await Reaction.countDocuments({ 
+      resourceType: "restaurant", 
+      resourceId: restaurant._id, 
+      type: "dislike" 
+    });
+    
+    const restaurantObj = restaurant.toObject();
+    restaurantObj.likesCount = likesCount;
+    restaurantObj.dislikesCount = dislikesCount;
+    restaurantObj.userReaction = null; // Will be set by LikeDislike component based on current user
+    
+    res.json(restaurantObj);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching restaurant", error: error.message });
   }
 });
 

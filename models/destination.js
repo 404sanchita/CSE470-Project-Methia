@@ -1,5 +1,11 @@
 import mongoose from "mongoose";
 
+const commentSchema = new mongoose.Schema({
+  text: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // optional
+});
+
 const destinationSchema = new mongoose.Schema({
   name: String,
   country: String,
@@ -15,10 +21,9 @@ const destinationSchema = new mongoose.Schema({
   etiquetteTips: [String],
   packingChecklist: [String],
 
-  // ✅ New fields:
-  likes: { type: Number, default: 0 },
-  dislikes: { type: Number, default: 0 },
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  comments: [commentSchema],
 });
 
-const Destination = mongoose.model("Destination", destinationSchema);
-export default Destination;
+export default mongoose.model("Destination", destinationSchema);

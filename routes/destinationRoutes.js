@@ -1,70 +1,95 @@
+
+
 import express from "express";
 import Destination from "../models/destination.js";
+import Reaction from "../models/reaction.js";
 
 const router = express.Router();
 
-// ✅ Get all destinations
+// GET all destinations
 router.get("/", async (req, res) => {
   try {
-    const destinations = await Destination.find();
+    const destinations = await Destination.find({}, "name country");
     res.json(destinations);
   } catch (err) {
     res.status(500).json({ message: "Failed to fetch destinations" });
   }
 });
 
-// ✅ Get single destination
+
+// GET single destination by ID
 router.get("/:id", async (req, res) => {
   try {
     const destination = await Destination.findById(req.params.id);
-    if (!destination) return res.status(404).json({ message: "Not found" });
-    res.json(destination);
+    if (!destination) {
+      return res.status(404).json({ message: "Destination not found" });
+    }
+    
+    // Get reaction counts
+    const likesCount = await Reaction.countDocuments({ 
+      resourceType: "destination", 
+      resourceId: destination._id, 
+      type: "like" 
+    });
+    const dislikesCount = await Reaction.countDocuments({ 
+      resourceType: "destination", 
+      resourceId: destination._id, 
+      type: "dislike" 
+    });
+    
+    const destinationObj = destination.toObject();
+    destinationObj.likesCount = likesCount;
+    destinationObj.dislikesCount = dislikesCount;
+    destinationObj.userReaction = null; // Will be set by LikeDislike component based on current user
+    
+    res.json(destinationObj);
   } catch (err) {
+    console.error("Error fetching destination:", err);
     res.status(500).json({ message: "Failed to fetch destination" });
   }
 });
 
-// ✅ Add new destination
-router.post("/", async (req, res) => {
+
+
+// GET comments for a destination
+router.get("/:id/comments", async (req, res) => {
   try {
-    const dest = new Destination(req.body);
-    const saved = await dest.save();
-    res.status(201).json(saved);
+    const destination = await Destination.findById(req.params.id, "comments");
+    if (!destination)
+      return res.status(404).json({ message: "Destination not found" });
+
+    res.json(destination.comments);
   } catch (err) {
-    res.status(400).json({ message: "Error saving destination" });
+    res.status(500).json({ message: "Failed to fetch comments" });
   }
 });
 
-// ✅ Like a destination
-router.put("/:id/like", async (req, res) => {
-  try {
-    const destination = await Destination.findById(req.params.id);
-    if (!destination) return res.status(404).json({ message: "Not found" });
-
-    destination.likes = (destination.likes || 0) + 1;
-    await destination.save();
-
-    res.json({ likes: destination.likes, dislikes: destination.dislikes });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to like destination" });
+// POST a new comment
+router.post("/:id/comments", async (req, res) => {
+  const { text } = req.body;
+  if (!text || text.trim() === "") {
+    return res.status(400).json({ message: "Comment text is required" });
   }
-});
 
-// ✅ Dislike a destination
-router.put("/:id/dislike", async (req, res) => {
   try {
     const destination = await Destination.findById(req.params.id);
-    if (!destination) return res.status(404).json({ message: "Not found" });
+    if (!destination)
+      return res.status(404).json({ message: "Destination not found" });
 
-    destination.dislikes = (destination.dislikes || 0) + 1;
+    const newComment = {
+      text: text.trim(),
+      createdAt: new Date(),
+    };
+
+    destination.comments.push(newComment);
     await destination.save();
 
-    res.json({ likes: destination.likes, dislikes: destination.dislikes });
+    res.status(201).json(
+      destination.comments[destination.comments.length - 1]
+    );
   } catch (err) {
-    res.status(500).json({ message: "Failed to dislike destination" });
+    res.status(500).json({ message: "Failed to save comment" });
   }
 });
 
 export default router;
-
-
