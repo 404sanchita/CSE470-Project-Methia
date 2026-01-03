@@ -1,0 +1,68 @@
+/* Navbar.css */
+
+/* Site header container */
+.site-header {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Site name/logo at the top */
+.site-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #007bff;
+  padding: 0.8rem 2rem;
+}
+
+.site-name a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Navbar links */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 2rem;
+}
+
+.navbar ul {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar ul li a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: color 0.2s ease-in-out;
+}
+
+.navbar ul li a:hover {
+  color: #007bff;
+}
+
+/* Auth button */
+.navbar .auth-button {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.navbar .auth-button:hover {
+  background-color: #0056b3;
+}
